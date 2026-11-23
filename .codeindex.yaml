@@ -1,0 +1,26 @@
+# codeindex configuration
+
+version: 1
+
+ai_command: 'hermes'
+
+languages:
+  - php
+
+include:
+  - .
+
+exclude:
+  - "**/*.pyc"
+  - "**/.git/**"
+  - "**/build/**"
+  - "**/dist/**"
+  - "**/node_modules/**"
+  - "**/tests/**"
+  - "**/vendor/**"
+  - "**/creds/**"
+
+parallel_workers: 8
+batch_size: 50
+
+output_file: README_AI.md

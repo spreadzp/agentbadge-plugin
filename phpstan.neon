@@ -1,0 +1,17 @@
+includes:
+    - vendor/szepeviktor/phpstan-wordpress/extension.neon
+
+parameters:
+    level: 5
+
+    bootstrapFiles:
+        - tests/phpstan-bootstrap.php
+
+    paths:
+        - includes/
+        - agentbadge.php
+
+    excludePaths:
+        - */vendor/*
+        - */tests/*
+        - */assets/*
