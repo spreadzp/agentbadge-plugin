@@ -125,15 +125,18 @@ class Agentbadge_Env {
 	}
 
 	/**
-	 * Apply_filters() passthrough (single arg).
+	 * Apply_filters() passthrough — forwards extra args the hook's
+	 * contract requires (e.g. robots_txt needs $public or core
+	 * WP_Sitemaps::add_robots fatals on ArgumentCountError).
 	 *
 	 * @param string $hook  Filter name.
 	 * @param mixed  $value Value.
+	 * @param mixed  ...$args Extra args for the hook contract.
 	 * @return mixed
 	 */
-	public function filter( string $hook, $value ) {
+	public function filter( string $hook, $value, ...$args ) {
 		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.DynamicHooknameFound -- intentional seam: callers pass the hook name
-		return apply_filters( $hook, $value );
+		return apply_filters( $hook, $value, ...$args );
 	}
 
 	/**
@@ -161,7 +164,7 @@ class Agentbadge_Env {
 		}
 		// Virtual robots.txt — core do_robots() text for public sites.
 		$text = "User-agent: *\nDisallow: /wp-admin/\nAllow: /wp-admin/admin-ajax.php\n";
-		$text = (string) $this->filter( 'robots_txt', $text );
+		$text = (string) $this->filter( 'robots_txt', $text, $this->option( 'blog_public' ) );
 		return $text;
 	}
 

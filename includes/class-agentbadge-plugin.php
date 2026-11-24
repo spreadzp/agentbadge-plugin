@@ -310,6 +310,13 @@ class Agentbadge_Plugin {
 		if ( defined( 'AGENTBADGE_VERSION' ) ) {
 			update_option( 'agentbadge_version', AGENTBADGE_VERSION, false );
 		}
+		// Grant the menu capability: add_menu_page() gates on
+		// 'agentbadge_view', and nobody holds it until granted —
+		// without this the admin page 403s for every role.
+		$role = get_role( 'administrator' );
+		if ( null !== $role ) {
+			$role->add_cap( 'agentbadge_view' );
+		}
 	}
 
 	/**
@@ -322,5 +329,9 @@ class Agentbadge_Plugin {
 		wp_clear_scheduled_hook( 'agentbadge_self_report_once' );
 		wp_clear_scheduled_hook( 'agentbadge_job_pull' );
 		wp_clear_scheduled_hook( 'agentbadge_job_pull_once' );
+		$role = get_role( 'administrator' );
+		if ( null !== $role ) {
+			$role->remove_cap( 'agentbadge_view' );
+		}
 	}
 }

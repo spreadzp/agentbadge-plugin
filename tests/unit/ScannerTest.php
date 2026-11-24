@@ -47,7 +47,7 @@ class Stub_Env extends Agentbadge_Env {
 	public function permalink_structure(): string { return $this->permalink; }
 	public function wp_version(): string { return $this->wpv; }
 	public function has_action( string $hook, $callback ) { return $this->actions[ "$hook:$callback" ] ?? false; }
-	public function filter( string $hook, $value ) { return $this->filters[ $hook ] ?? $value; }
+	public function filter( string $hook, $value, ...$args ) { return $this->filters[ $hook ] ?? $value; }
 	public function rest_routes(): array { return $this->routes; }
 	public function robots_txt(): ?string { return $this->robots; }
 	public function sitemaps_enabled(): bool { return $this->sitemaps; }

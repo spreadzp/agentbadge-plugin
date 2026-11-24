@@ -68,6 +68,9 @@ final class PluginTest extends TestCase {
 		Functions\expect( 'update_option' )
 			->once()
 			->with( 'agentbadge_version', \Mockery::type( 'string' ), false );
+		$role = \Mockery::mock( 'WP_Role' );
+		$role->shouldReceive( 'add_cap' )->once()->with( 'agentbadge_view' );
+		Functions\expect( 'get_role' )->with( 'administrator' )->andReturn( $role );
 
 		Agentbadge_Plugin::activate();
 	}
