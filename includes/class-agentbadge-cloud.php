@@ -111,6 +111,27 @@ class Agentbadge_Cloud {
 	}
 
 	/**
+	 * TLS gate — https always allowed; http ONLY behind an explicit
+	 * dev escape hatch (AGENTBADGE_INSECURE_DEV constant AND an
+	 * AGENTBADGE_API_BASE override — the default endpoint can never
+	 * be reached insecurely). SLICE-262-18: the harness needs it;
+	 * production never sets the constant.
+	 *
+	 * @param string $url Resolved URL.
+	 * @return bool
+	 */
+	private function url_allowed( string $url ): bool {
+		if ( str_starts_with( $url, 'https://' ) ) {
+			return true;
+		}
+		if ( ! str_starts_with( $url, 'http://' ) ) {
+			return false;
+		}
+		return true === (bool) $this->env->constant( 'AGENTBADGE_INSECURE_DEV' )
+			&& null !== $this->env->constant( self::BASE_CONSTANT );
+	}
+
+	/**
 	 * GET helper — Bearer auth, same refusal rules as post().
 	 *
 	 * @param string $path     API path (with query).
@@ -119,7 +140,7 @@ class Agentbadge_Cloud {
 	 */
 	private function get( string $path, string $site_key ): array {
 		$url = $this->base_url() . $path;
-		if ( ! str_starts_with( $url, 'https://' ) ) {
+		if ( ! $this->url_allowed( $url ) ) {
 			return array(
 				'status' => 0,
 				'body'   => array(),
@@ -163,7 +184,7 @@ class Agentbadge_Cloud {
 	 */
 	private function post( string $path, string $site_key, ?array $payload ): array {
 		$url = $this->base_url() . $path;
-		if ( ! str_starts_with( $url, 'https://' ) ) {
+		if ( ! $this->url_allowed( $url ) ) {
 			return array(
 				'status' => 0,
 				'body'   => array(),
