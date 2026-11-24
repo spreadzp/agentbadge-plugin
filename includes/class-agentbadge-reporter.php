@@ -228,13 +228,19 @@ class Agentbadge_Reporter {
 
 	/**
 	 * Disconnect — forget connection + report state (key removal
-	 * is the key store's job).
+	 * is the key store's job). The TOFU root pin and cached keyset
+	 * must also go: they are bound to the backend we talked to, and
+	 * keeping them would pin the OLD deployment's root so a later
+	 * connect to a different backend (e.g. staging → prod) can never
+	 * verify its keyset (found live on the pryme.studio prod switch).
 	 *
 	 * @return void
 	 */
 	public function disconnect(): void {
 		delete_option( self::CONNECT_OPTION );
 		delete_option( self::STATE_OPTION );
+		delete_option( Agentbadge_Keyset::PIN_OPTION );
+		delete_option( Agentbadge_Keyset::CACHE_OPTION );
 	}
 
 	/**
