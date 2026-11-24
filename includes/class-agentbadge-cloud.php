@@ -23,6 +23,7 @@ class Agentbadge_Cloud {
 	public const BASE_CONSTANT  = 'AGENTBADGE_API_BASE';
 	public const HANDSHAKE_PATH = '/api/intel/ownership/handshake';
 	public const EVIDENCE_PATH  = '/api/intel/evidence';
+	public const JOBS_PATH      = '/api/intel/jobs';
 
 	/**
 	 * Env seam.
@@ -73,6 +74,83 @@ class Agentbadge_Cloud {
 	 */
 	public function submit( string $site_key, array $submission ): array {
 		return $this->post( self::EVIDENCE_PATH, $site_key, $submission );
+	}
+
+	/**
+	 * GET /jobs?site= — read-only queue peek (SLICE-262-16).
+	 *
+	 * @param string $site_key absk_ plaintext.
+	 * @param string $site_id  Authenticated site id.
+	 * @return array{status:int, body:array, error:?string}
+	 */
+	public function jobs_peek( string $site_key, string $site_id ): array {
+		return $this->get( self::JOBS_PATH . '?site=' . rawurlencode( $site_id ), $site_key );
+	}
+
+	/**
+	 * POST /jobs/:id/claim — atomic lease claim.
+	 *
+	 * @param string $site_key absk_ plaintext.
+	 * @param string $job_id   Job id.
+	 * @return array{status:int, body:array, error:?string}
+	 */
+	public function job_claim( string $site_key, string $job_id ): array {
+		return $this->post( self::JOBS_PATH . '/' . rawurlencode( $job_id ) . '/claim', $site_key, array() );
+	}
+
+	/**
+	 * POST /jobs/:id/result — result body {lease_token, result}.
+	 *
+	 * @param string $site_key absk_ plaintext.
+	 * @param string $job_id   Job id.
+	 * @param array  $body     Result body.
+	 * @return array{status:int, body:array, error:?string}
+	 */
+	public function job_result( string $site_key, string $job_id, array $body ): array {
+		return $this->post( self::JOBS_PATH . '/' . rawurlencode( $job_id ) . '/result', $site_key, $body );
+	}
+
+	/**
+	 * GET helper — Bearer auth, same refusal rules as post().
+	 *
+	 * @param string $path     API path (with query).
+	 * @param string $site_key Bearer token.
+	 * @return array{status:int, body:array, error:?string}
+	 */
+	private function get( string $path, string $site_key ): array {
+		$url = $this->base_url() . $path;
+		if ( ! str_starts_with( $url, 'https://' ) ) {
+			return array(
+				'status' => 0,
+				'body'   => array(),
+				'error'  => 'insecure endpoint refused',
+			);
+		}
+		$response = wp_remote_get(
+			$url,
+			array(
+				'timeout' => 15,
+				'headers' => array(
+					'Authorization' => 'Bearer ' . $site_key,
+					'Accept'        => 'application/json',
+					'User-Agent'    => 'AgentBadge-WP/' . ( defined( 'AGENTBADGE_VERSION' ) ? AGENTBADGE_VERSION : 'dev' ),
+				),
+			)
+		);
+		if ( is_wp_error( $response ) ) {
+			return array(
+				'status' => 0,
+				'body'   => array(),
+				'error'  => $response->get_error_message(),
+			);
+		}
+		$status = (int) wp_remote_retrieve_response_code( $response );
+		$body   = json_decode( (string) wp_remote_retrieve_body( $response ), true );
+		return array(
+			'status' => $status,
+			'body'   => is_array( $body ) ? $body : array(),
+			'error'  => null,
+		);
 	}
 
 	/**

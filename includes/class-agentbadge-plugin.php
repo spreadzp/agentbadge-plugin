@@ -15,6 +15,11 @@ require_once __DIR__ . '/class-agentbadge-scanner.php';
 require_once __DIR__ . '/class-agentbadge-key-store.php';
 require_once __DIR__ . '/class-agentbadge-cloud.php';
 require_once __DIR__ . '/class-agentbadge-reporter.php';
+require_once __DIR__ . '/class-agentbadge-jcs.php';
+require_once __DIR__ . '/class-agentbadge-keyset.php';
+require_once __DIR__ . '/class-agentbadge-nonce-store.php';
+require_once __DIR__ . '/class-agentbadge-pull-executor.php';
+require_once __DIR__ . '/class-agentbadge-pull-runner.php';
 
 /**
  * Agentbadge_Plugin — bootstrap: hooks, subsystems.
@@ -70,10 +75,30 @@ class Agentbadge_Plugin {
 		add_action( 'admin_post_agentbadge_report_now', array( $this, 'handle_report_now' ) );
 		add_action( 'agentbadge_self_report', array( $this, 'cron_self_report' ) );
 		add_action( 'agentbadge_self_report_once', array( $this, 'cron_self_report_once' ) );
+		add_action( 'agentbadge_job_pull', array( $this, 'cron_job_pull' ) );
+		add_action( 'agentbadge_job_pull_once', array( $this, 'cron_job_pull_once' ) );
 		add_action( 'admin_init', array( $this, 'visit_trigger' ) );
+		add_filter( 'cron_schedules', array( $this, 'cron_schedules' ) ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- core filter
 		if ( ! wp_next_scheduled( 'agentbadge_self_report' ) ) {
 			wp_schedule_event( time() + 300, 'daily', 'agentbadge_self_report' );
 		}
+		if ( ! wp_next_scheduled( 'agentbadge_job_pull' ) ) {
+			wp_schedule_event( time() + 120, 'agentbadge_ten_minutes', 'agentbadge_job_pull' );
+		}
+	}
+
+	/**
+	 * Custom cron interval — 10 minutes (D-262-Q27 poll cadence).
+	 *
+	 * @param array $schedules Core schedules.
+	 * @return array
+	 */
+	public function cron_schedules( array $schedules ): array {
+		$schedules['agentbadge_ten_minutes'] = array(
+			'interval' => 600,
+			'display'  => 'Every Ten Minutes (AgentBadge)',
+		);
+		return $schedules;
 	}
 
 	/**
@@ -201,11 +226,16 @@ class Agentbadge_Plugin {
 	 */
 	public function visit_trigger(): void {
 		$last = (int) get_option( 'agentbadge_visit_check_at', 0 );
-		if ( time() - $last < 300 || wp_next_scheduled( 'agentbadge_self_report_once' ) ) {
+		if ( time() - $last < 300 ) {
 			return;
 		}
 		update_option( 'agentbadge_visit_check_at', time(), false );
-		wp_schedule_single_event( time(), 'agentbadge_self_report_once' );
+		if ( ! wp_next_scheduled( 'agentbadge_self_report_once' ) ) {
+			wp_schedule_single_event( time(), 'agentbadge_self_report_once' );
+		}
+		if ( ! wp_next_scheduled( 'agentbadge_job_pull_once' ) ) {
+			wp_schedule_single_event( time() + 30, 'agentbadge_job_pull_once' );
+		}
 	}
 
 	/**
@@ -215,6 +245,26 @@ class Agentbadge_Plugin {
 	 */
 	public function cron_self_report_once(): void {
 		( new Agentbadge_Reporter() )->report( false );
+	}
+
+	/**
+	 * Cron pull: bounded job processing — the runner's own
+	 * peek→claim→execute→submit cycle is bounded by the backend's
+	 * 90s scan window implicitly (jobs expire server-side).
+	 *
+	 * @return void
+	 */
+	public function cron_job_pull(): void {
+		( new Agentbadge_Pull_Runner() )->run();
+	}
+
+	/**
+	 * Visit-triggered pull — same cycle, once.
+	 *
+	 * @return void
+	 */
+	public function cron_job_pull_once(): void {
+		( new Agentbadge_Pull_Runner() )->run();
 	}
 
 	/**
@@ -262,6 +312,9 @@ class Agentbadge_Plugin {
 	 * @return void
 	 */
 	public static function deactivate(): void {
+		wp_clear_scheduled_hook( 'agentbadge_self_report' );
+		wp_clear_scheduled_hook( 'agentbadge_self_report_once' );
 		wp_clear_scheduled_hook( 'agentbadge_job_pull' );
+		wp_clear_scheduled_hook( 'agentbadge_job_pull_once' );
 	}
 }
