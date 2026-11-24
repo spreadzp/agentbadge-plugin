@@ -55,3 +55,21 @@ make release      # dist/release-manifest.json
 
 `SECURITY.md` → `security@agentbadge.xyz`; попадает в
 `release-manifest.json → security_contact` автоматически.
+
+## wp.org submission (SLICE-262-36)
+
+Listing materials живут в `wordpress-org/` (не шипуется в zip —
+wp.org берёт assets из SVN `assets/` отдельно):
+
+- `readme.txt` (plugin root — wp.org-формат, ВХОДИТ в zip)
+- `wordpress-org/assets/` — `icon-256x256.png`, `banner-772x250.png`,
+  `screenshot-1..3.png`
+- `docs/EPICS/.../SLICE-262-36-wporg-submission.md` — полный scope
+  + publish gate
+
+**Порядок:** чистая-инсталляция e2e (install→scan→connect→snapshot)
+→ Plugin Check (PCF) 0 errors → zip upload на
+`wordpress.org/plugins/developers/add/` → review 3-7 дней →
+`svn co https://plugins.svn.wordpress.org/agentbadge` →
+`trunk/` = dev, `tags/<ver>/` = frozen копия на каждый релиз,
+`assets/` = listing-файлы. Fallback-слаг: `agentbadge-verify`.
