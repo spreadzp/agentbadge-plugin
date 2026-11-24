@@ -9,6 +9,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+require_once __DIR__ . '/class-agentbadge-env.php';
+require_once __DIR__ . '/class-agentbadge-check-result.php';
+require_once __DIR__ . '/class-agentbadge-scanner.php';
+
 /**
  * Agentbadge_Plugin — bootstrap: hooks, subsystems.
  *
@@ -57,6 +61,7 @@ class Agentbadge_Plugin {
 	 */
 	public function register_hooks(): void {
 		add_action( 'admin_menu', array( $this, 'register_admin_menu' ) );
+		add_action( 'admin_post_agentbadge_scan', array( $this, 'handle_scan' ) );
 	}
 
 	/**
@@ -78,7 +83,8 @@ class Agentbadge_Plugin {
 	}
 
 	/**
-	 * Render the admin page shell. Replaced by real views in 262-17.
+	 * Render the admin page (S1): Scan tab runs the free local
+	 * scanner, Cloud tab is an honest stub until 262-14.
 	 *
 	 * @return void
 	 */
@@ -86,8 +92,41 @@ class Agentbadge_Plugin {
 		if ( ! current_user_can( 'agentbadge_view' ) && ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'Access denied.', 'agentbadge' ) );
 		}
-		echo '<div class="wrap"><h1>' . esc_html__( 'AgentBadge — Agent Readiness', 'agentbadge' ) . '</h1>';
-		echo '<p>' . esc_html__( 'Local scanner and Cloud integration bootstrap.', 'agentbadge' ) . '</p></div>';
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only tab param
+		$tab  = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : 'scan';
+		$view = array(
+			'tab'  => in_array( $tab, array( 'scan', 'cloud' ), true ) ? $tab : 'scan',
+			'scan' => get_option( 'agentbadge_last_scan', null ),
+		);
+		require dirname( __DIR__ ) . '/templates/admin-page.php';
+	}
+
+	/**
+	 * Admin-post handler: run the local scan, persist, redirect.
+	 * No JS dependency — plain POST + nonce + capability.
+	 *
+	 * @return void
+	 */
+	public function handle_scan(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'Access denied.', 'agentbadge' ) );
+		}
+		check_admin_referer( 'agentbadge_scan' );
+		$scanner = new Agentbadge_Scanner();
+		$results = array();
+		foreach ( $scanner->run() as $r ) {
+			$results[] = $r->to_array();
+		}
+		update_option(
+			'agentbadge_last_scan',
+			array(
+				'scanned_at' => gmdate( 'c' ),
+				'results'    => $results,
+			),
+			false
+		);
+		wp_safe_redirect( admin_url( 'admin.php?page=agentbadge&tab=scan' ) );
+		exit;
 	}
 
 	/**
