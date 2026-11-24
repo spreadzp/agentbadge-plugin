@@ -12,7 +12,8 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 // Options owned by the plugin (site_key, consents, cached reports).
 $agentbadge_options = array(
 	'agentbadge_installed_at',
-	'agentbadge_site_key',       // credential — must not survive uninstall
+	'agentbadge_version',
+	'agentbadge_site_key',       // credential — must not survive uninstall.
 	'agentbadge_site_id',
 	'agentbadge_consents',
 	'agentbadge_last_report',

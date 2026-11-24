@@ -304,6 +304,12 @@ class Agentbadge_Plugin {
 		if ( false === get_option( 'agentbadge_installed_at' ) ) {
 			add_option( 'agentbadge_installed_at', gmdate( 'c' ), '', false );
 		}
+		// Upgrade marker: stored code-version lets future migrations
+		// detect "installed under X, now running Y" (SLICE-262-33).
+		// Idempotent — re-activation on the same version is a no-op.
+		if ( defined( 'AGENTBADGE_VERSION' ) ) {
+			update_option( 'agentbadge_version', AGENTBADGE_VERSION, false );
+		}
 	}
 
 	/**

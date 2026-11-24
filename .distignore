@@ -1,0 +1,29 @@
+# wp.org / zip ship-list — files NOT distributed to users.
+# Keep in sync with bin/build-release.php $ship() (the two lists
+# must never disagree — manifest checksums cover only shipped files).
+
+.git
+.gitignore
+.distignore
+.phpcs.xml.dist
+.php-cs-fixer.php
+phpunit.xml.dist
+phpstan.neon
+composer.json
+composer.lock
+Makefile
+
+bin/
+tests/
+docs/
+creds/
+vendor/
+graphify-out/
+dist/
+node_modules/
+
+# dev-only
+.claude/
+.cursor/
+.devin/
+.agents/

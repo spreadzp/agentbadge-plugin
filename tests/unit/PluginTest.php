@@ -65,6 +65,9 @@ final class PluginTest extends TestCase {
 		Functions\expect( 'add_option' )
 			->once()
 			->with( 'agentbadge_installed_at', \Mockery::type( 'string' ), '', false );
+		Functions\expect( 'update_option' )
+			->once()
+			->with( 'agentbadge_version', \Mockery::type( 'string' ), false );
 
 		Agentbadge_Plugin::activate();
 	}
