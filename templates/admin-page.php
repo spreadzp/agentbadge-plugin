@@ -206,6 +206,17 @@ $chip = array(
 					<p class="description">
 						<?php esc_html_e( 'Get a site_key from your AgentBadge dashboard. Connecting proves installation control and grants audit consent. For hardened installs, define AGENTBADGE_SITE_KEY in wp-config.php instead — it always wins over the stored key.', 'agentbadge' ); ?>
 					</p>
+					<details style="margin-top:10px;">
+						<summary><strong><?php esc_html_e( 'What will be sent to Cloud', 'agentbadge' ); ?></strong></summary>
+						<p class="description">
+							<?php esc_html_e( 'Only this whitelist of configuration facts — versions and boolean flags. Never option values, paths, emails, or user data. Facts arrive as self-reported (untrusted) and are shown as such in reports.', 'agentbadge' ); ?>
+						</p>
+						<ul style="list-style:disc;margin-left:20px;">
+							<?php foreach ( $cloud['facts'] as $f ) : ?>
+								<li><code><?php echo esc_html( $f ); ?></code></li>
+							<?php endforeach; ?>
+						</ul>
+					</details>
 				</form>
 			<?php endif; ?>
 		</div>
