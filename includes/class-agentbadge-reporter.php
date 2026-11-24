@@ -182,7 +182,9 @@ class Agentbadge_Reporter {
 		}
 
 		$scan_id      = 'self_' . gmdate( 'Ymd\THis' );
-		$collected_at = gmdate( 'c' );
+		// Backend validates collected_at as strict ISO-8601 ("Z" suffix
+		// only, zod .datetime()); gmdate('c') emits "+00:00" → rejected.
+		$collected_at = gmdate( 'Y-m-d\TH:i:s\Z' );
 		foreach ( self::submissions( $send, $state['site_id'], $scan_id, $collected_at ) as $sub ) {
 			$r = $this->cloud->submit( $key['key'], $sub );
 			if ( $r['status'] >= 200 && $r['status'] < 300 ) {

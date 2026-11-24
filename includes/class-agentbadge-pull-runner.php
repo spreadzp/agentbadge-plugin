@@ -195,11 +195,16 @@ class Agentbadge_Pull_Runner {
 			return 'skipped'; // Unknown/inactive key — never trust the body.
 		}
 		$sig = $job['sig'] ?? array();
+		// Cast params to object for the canonical bytes: a PHP empty
+		// array JCS-encodes "[]" where the wire had "{}", breaking the
+		// signature (found live on the first pryme.studio pull-job).
+		$canonical           = $body;
+		$canonical['params'] = (object) $body['params'];
 		if (
 			! is_array( $sig ) ||
 			( $sig['algorithm'] ?? '' ) !== 'ed25519' ||
 			! Agentbadge_Keyset::verify(
-				Agentbadge_Jcs::encode( $body ),
+				Agentbadge_Jcs::encode( $canonical ),
 				(string) ( $sig['value'] ?? '' ),
 				$pub
 			)
