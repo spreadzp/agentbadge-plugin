@@ -143,6 +143,8 @@ class Agentbadge_Pull_Runner {
 			return $res;
 		}
 
+		$this->refresh_status( $key['key'] );
+
 		$peek = $this->cloud->jobs_peek( $key['key'], $conn['site_id'] );
 		if ( 200 !== $peek['status'] ) {
 			$res['reason'] = 'peek_failed';
@@ -171,6 +173,21 @@ class Agentbadge_Pull_Runner {
 			}
 		}
 		return $res;
+	}
+
+	/**
+	 * Refresh the local status snapshot — GET /site/status with the
+	 * site_key, stored verbatim in an option on the same cadence as
+	 * the job poll. Consumers (Pryme portal, admin UI) read the
+	 * option, never call the backend directly.
+	 *
+	 * @param string $site_key absk_ plaintext.
+	 */
+	private function refresh_status( string $site_key ): void {
+		$fetch = $this->cloud->status_snapshot( $site_key );
+		if ( 200 === $fetch['status'] && is_string( $fetch['body']['site_id'] ?? null ) ) {
+			update_option( 'agentbadge_status_snapshot', $fetch['body'], false );
+		}
 	}
 
 	/**

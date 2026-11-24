@@ -61,8 +61,14 @@ class Fake_Pull_Cloud extends Agentbadge_Cloud {
 	public int $peek_status = 200;
 	public int $claim_status = 200;
 	public int $result_status = 201;
+	public array $status_body = array();
+	public int $status_status = 404;
 	public array $calls = array();
 	public function __construct() {}
+	public function status_snapshot( string $site_key ): array {
+		$this->calls[] = 'status';
+		return array( 'status' => $this->status_status, 'body' => $this->status_body, 'error' => null );
+	}
 	public function jobs_peek( string $site_key, string $site_id ): array {
 		$this->calls[] = 'peek';
 		return array( 'status' => $this->peek_status, 'body' => array( 'jobs' => $this->peek_jobs ), 'error' => null );
@@ -238,7 +244,7 @@ final class PullTest extends TestCase {
 
 		$r = $this->runner( $cloud, $ks, $nonces, $ex )->run();
 		$this->assertSame( 1, $r['done'] );
-		$this->assertSame( array( 'peek', 'claim:pjob_1', 'result:pjob_1' ), $cloud->calls );
+		$this->assertSame( array( 'status', 'peek', 'claim:pjob_1', 'result:pjob_1' ), $cloud->calls );
 		$this->assertTrue( $nonces->seen( 'n_1' ) );
 	}
 
@@ -252,7 +258,7 @@ final class PullTest extends TestCase {
 		$ks->pub = base64_encode( sodium_crypto_sign_publickey( sodium_crypto_sign_seed_keypair( $jobs_seed ) ) );
 		$r = $this->runner( $cloud, $ks, new Agentbadge_Nonce_Store(), new Agentbadge_Pull_Executor( $this->env, pull_test_registry() ) )->run();
 		$this->assertSame( 1, $r['skipped'] );
-		$this->assertSame( array( 'peek' ), $cloud->calls ); // never claimed
+		$this->assertSame( array( 'status', 'peek' ), $cloud->calls ); // never claimed
 	}
 
 	public function test_run_skips_foreign_site_and_expired_and_seen_nonce(): void {
@@ -271,7 +277,7 @@ final class PullTest extends TestCase {
 		$ks->pub = $pub;
 		$r       = $this->runner( $cloud, $ks, $nonces, new Agentbadge_Pull_Executor( $this->env, pull_test_registry() ) )->run();
 		$this->assertSame( 4, $r['skipped'] );
-		$this->assertSame( array( 'peek' ), $cloud->calls );
+		$this->assertSame( array( 'status', 'peek' ), $cloud->calls );
 	}
 
 	public function test_run_aborts_on_consent_403_and_marks_nonce_on_409(): void {
@@ -291,7 +297,7 @@ final class PullTest extends TestCase {
 		$nonces              = new Agentbadge_Nonce_Store();
 		$r = $this->runner( $cloud, $ks, $nonces, $ex )->run();
 		$this->assertSame( 'aborted', $r['reason'] );
-		$this->assertSame( array( 'peek', 'claim:pjob_1' ), $cloud->calls );
+		$this->assertSame( array( 'status', 'peek', 'claim:pjob_1' ), $cloud->calls );
 
 		// 409 at result → terminal for the nonce, run continues
 		$cloud               = new Fake_Pull_Cloud();
@@ -312,5 +318,25 @@ final class PullTest extends TestCase {
 		$this->connect();
 		$cloud->peek_status = 401;
 		$this->assertSame( 'peek_failed', $this->runner( $cloud, $ks, new Agentbadge_Nonce_Store(), $ex )->run()['reason'] );
+	}
+
+	public function test_run_refreshes_status_snapshot_option(): void {
+		$this->connect();
+		$cloud                = new Fake_Pull_Cloud();
+		$cloud->status_status = 200;
+		$cloud->status_body   = array(
+			'site_id'     => 'site_t',
+			'snapshot_at' => '2026-11-24T12:00:00Z',
+			'attestation' => array( 'attestation_id' => 'att_1', 'effective_status' => 'active' ),
+			'report'      => null,
+		);
+		$this->runner( $cloud, new Fake_Keyset(), new Agentbadge_Nonce_Store(), new Agentbadge_Pull_Executor( $this->env, pull_test_registry() ) )->run();
+		$this->assertSame( $cloud->status_body, $this->options['agentbadge_status_snapshot'] ?? null );
+
+		// Non-200 or malformed body leaves the stored snapshot untouched.
+		$cloud->status_status = 500;
+		$this->options['agentbadge_status_snapshot'] = 'stale-value';
+		$this->runner( $cloud, new Fake_Keyset(), new Agentbadge_Nonce_Store(), new Agentbadge_Pull_Executor( $this->env, pull_test_registry() ) )->run();
+		$this->assertSame( 'stale-value', $this->options['agentbadge_status_snapshot'] );
 	}
 }

@@ -24,6 +24,7 @@ class Agentbadge_Cloud {
 	public const HANDSHAKE_PATH = '/api/intel/ownership/handshake';
 	public const EVIDENCE_PATH  = '/api/intel/evidence';
 	public const JOBS_PATH      = '/api/intel/jobs';
+	public const STATUS_PATH    = '/api/intel/site/status';
 
 	/**
 	 * Env seam.
@@ -108,6 +109,18 @@ class Agentbadge_Cloud {
 	 */
 	public function job_result( string $site_key, string $job_id, array $body ): array {
 		return $this->post( self::JOBS_PATH . '/' . rawurlencode( $job_id ) . '/result', $site_key, $body );
+	}
+
+	/**
+	 * GET /site/status — the site's own status snapshot: latest
+	 * attestation + latest report findings. Cached locally so
+	 * consumers (portal cards, admin UI) read without a live call.
+	 *
+	 * @param string $site_key absk_ plaintext.
+	 * @return array{status:int, body:array, error:?string}
+	 */
+	public function status_snapshot( string $site_key ): array {
+		return $this->get( self::STATUS_PATH, $site_key );
 	}
 
 	/**
