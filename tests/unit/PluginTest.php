@@ -37,6 +37,8 @@ final class PluginTest extends TestCase {
 	 */
 	public function test_instance_registers_admin_menu_hook(): void {
 		Actions\expectAdded( 'admin_menu' )->once();
+		Functions\when( 'wp_next_scheduled' )->justReturn( false );
+		Functions\when( 'wp_schedule_event' )->justReturn( true );
 
 		$plugin = Agentbadge_Plugin::instance();
 		$this->assertInstanceOf( Agentbadge_Plugin::class, $plugin );

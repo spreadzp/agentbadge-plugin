@@ -187,6 +187,23 @@ class Agentbadge_Env {
 	}
 
 	/**
+	 * Server software family (apache/nginx/litespeed/other)
+	 * — normalized, never the raw banner string.
+	 *
+	 * @return string
+	 */
+	public function server_software(): string {
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- normalized below, never echoed raw
+		$raw = strtolower( (string) ( $_SERVER['SERVER_SOFTWARE'] ?? '' ) );
+		foreach ( array( 'apache', 'nginx', 'litespeed', 'caddy', 'iis' ) as $family ) {
+			if ( str_contains( $raw, $family ) ) {
+				return $family;
+			}
+		}
+		return 'unknown';
+	}
+
+	/**
 	 * Bounded scan of theme files for a marker string.
 	 * Limited file count + size — never reads user uploads.
 	 *
