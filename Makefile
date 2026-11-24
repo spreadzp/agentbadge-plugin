@@ -1,4 +1,4 @@
-.PHONY: lint lint-fix fix stan check test contracts sync-contracts release e2e
+.PHONY: lint lint-fix fix stan check test contracts sync-contracts release e2e zip
 
 # PHP CodeSniffer — check WordPress coding standards
 lint:
@@ -40,3 +40,7 @@ release:
 # e2e harness (fake backend + wp-stubs)
 e2e:
 	bash tests/e2e/run-e2e.sh
+
+# private-beta zip → dist/agentbadge.zip + .sha256 (SLICE-262-24)
+zip:
+	bash bin/build-zip.sh

@@ -75,11 +75,17 @@ AgentBadge Cloud. Выполняется в браузере — код писа
 
 ## Что делает координатор (не для джуниора)
 
-- Собрать zip: `bin/build-release.php` → `dist/` + zip по
-  `.distignore` ship-list
+- Собрать zip: `make zip` → `dist/agentbadge.zip` +
+  `dist/agentbadge.zip.sha256` (beta-канал SLICE-262-24 — то же
+  дерево, что пойдёт на wp.org; отличается только
+  `AGENTBADGE_API_BASE` в wp-config.php целевого сайта)
 - Создать сайт на intel-сервере: tenant → customer → site
   (domain pryme.studio) → issue `absk_` (показывается один раз)
 - Выдать trial-план (`assignPlan`) + проверить, что handshake
   сам грантит `audit` consent
 - После отчёта джуниора: создать pull-job `ownership_verify` /
   `diagnostics` и принять результат (SLICE-262-17)
+- **Важно:** если сайт ранее был подключён к ДРУГОМУ бэкенду
+  (staging/dev), перед Connect обязателен один Disconnect —
+  он сбрасывает TOFU root-pin (баг, найденный на pryme.studio
+  при переходе ngrok→prod, фикс в reporter.php)
