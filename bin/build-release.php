@@ -70,6 +70,26 @@ $registry = json_decode(
 	flags: JSON_THROW_ON_ERROR
 );
 
+// SLICE-262-36 — version-sync gate: wp.org parses THREE version
+// sources and a mismatch silently breaks updates (plugin header is
+// authoritative for WP ≥5.8; Stable tag selects the SVN tag dir;
+// AGENTBADGE_VERSION is the runtime const). Fail the build loud.
+$version   = $pick( '/Version:\s*(\S+)/', $pluginHeader, 'plugin version' );
+$stableTag = $pick( '/Stable tag:\s*(\S+)/', $readme, 'readme Stable tag' );
+$versionC  = $pick( '/AGENTBADGE_VERSION[\'"],\s*\'([^\']+)\'/', $pluginHeader, 'AGENTBADGE_VERSION const' );
+foreach (
+	[ 'Stable tag' => $stableTag, 'AGENTBADGE_VERSION' => $versionC ] as $what => $v
+) {
+	if ( $v !== $version ) {
+		fwrite( STDERR, "manifest: version mismatch — plugin header $version vs $what $v\n" );
+		exit( 2 );
+	}
+}
+if ( $stableTag === 'trunk' ) {
+	fwrite( STDERR, "manifest: Stable tag 'trunk' is forbidden by wp.org (breaks rollback)\n" );
+	exit( 2 );
+}
+
 $checksums = [];
 foreach ( $ship() as $rel ) {
 	$checksums[ $rel ] = hash_file( 'sha256', "$root/$rel" );
