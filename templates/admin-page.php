@@ -15,6 +15,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- template-local vars inside a method-scope include
+
 $ab_tab   = $view['tab'] ?? 'scan';
 $scan     = $view['scan'] ?? null;
 $results  = $scan['results'] ?? array();

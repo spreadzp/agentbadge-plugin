@@ -197,7 +197,7 @@ class Agentbadge_Env {
 	 */
 	public function server_software(): string {
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- normalized below, never echoed raw
-		$raw = strtolower( (string) ( $_SERVER['SERVER_SOFTWARE'] ?? '' ) );
+		$raw = strtolower( (string) wp_unslash( $_SERVER['SERVER_SOFTWARE'] ?? '' ) );
 		foreach ( array( 'apache', 'nginx', 'litespeed', 'caddy', 'iis' ) as $family ) {
 			if ( str_contains( $raw, $family ) ) {
 				return $family;

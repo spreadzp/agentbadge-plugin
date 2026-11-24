@@ -73,3 +73,40 @@ wp.org берёт assets из SVN `assets/` отдельно):
 `svn co https://plugins.svn.wordpress.org/agentbadge` →
 `trunk/` = dev, `tags/<ver>/` = frozen копия на каждый релиз,
 `assets/` = listing-файлы. Fallback-слаг: `agentbadge-verify`.
+
+### PCF env (воспроизводимо, ~2 мин)
+
+```bash
+docker run -d --name wp-pcf-db -p 127.0.0.1:33060:3306 \
+  -e MARIADB_ROOT_PASSWORD=root -e MARIADB_DATABASE=wpcheck mariadb:10.6
+mkdir /tmp/wpcheck && cd /tmp/wpcheck
+wp core download && wp config create --dbname=wpcheck --dbuser=root \
+  --dbpass=root --dbhost=127.0.0.1:33060
+wp core install --url=http://localhost:8585 --title=PCF \
+  --admin_user=admin --admin_password=admin --admin_email=admin@example.com
+wp plugin install plugin-check --activate
+wp plugin install dist/agentbadge.zip --activate
+wp plugin check agentbadge          # gate: 0 errors
+```
+
+Gate-прогон 2026-11-24: **0 errors / 0 warnings** (PCF 2.2.0,
+WP 7.1.5). Первый прогон поймал: устаревший `Tested up to:`
+(6.8→7.1), `wp_unslash` на `$_SERVER`, template-vars phpcs-scope.
+
+### e2e gate (чистая установка, 2026-11-24)
+
+- zip install → activate → Agentbadge menu ✓
+- handshake `absk_` → proof `installation_control/verified` +
+  audit consent `granted` ✓
+- self-report cron → 12 envelopes на прод ✓
+- `agentbadge_job_pull` → snapshot option заполнена
+  (`site_id`, `snapshot_at`; attestation null до первого скана — по дизайну) ✓
+- `wp plugin uninstall` → 8 options + 2 cron hooks вычищены полностью ✓
+
+### wp.org аккаунт (ручной шаг перед submit)
+
+`readme.txt` `Contributors:` должен быть реальным wp.org username —
+`agentbadge` и `apryymak` на profiles.wordpress.org не существуют
+(validator warning). Зарегистрировать аккаунт на
+`login.wordpress.org/register`, обновить `Contributors:` на этот
+handle ДО submit — wp.org привязывает плагин к этому профилю.
