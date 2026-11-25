@@ -75,6 +75,15 @@ Not tested on multisite — per-site state is stored in per-site options, but th
 
 The plugin is free. The optional cloud service runs in private beta — tiers are defined on agentbadge.xyz, no upsell code inside the plugin.
 
+== External Services ==
+
+This plugin can optionally connect to the AgentBadge Cloud API at `agentbadge.xyz` (service operated by the plugin author). The local scanner works fully offline — the connection is only used after you paste a site key in the Cloud tab.
+
+* **What the service is:** a verification backend that receives your site's scan evidence, runs an independent external scan of your public surface, and returns a signed report and attestation.
+* **What data is sent and when:** signed evidence envelopes containing scan check results (public-surface facts like robots.txt, headers, well-known files, sitemaps, plus plugin-side diagnostics such as whether WP_DEBUG is defined). Sent on the configured report cycle and only while the matching consent toggle is on. Content, user data, and secrets are never sent.
+* **Account:** no account registration is required — a site key (issued via agentbadge.xyz or the onboarding flow) identifies the site.
+* **Terms and policies:** terms of service — https://agentbadge.xyz/terms ; privacy policy — https://agentbadge.xyz/privacy
+
 == Screenshots ==
 
 1. Local scan results — readiness and exposure findings with evidence counts.
