@@ -73,6 +73,8 @@ wp.org берёт assets из SVN `assets/` отдельно):
 `svn co https://plugins.svn.wordpress.org/agentbadge` →
 `trunk/` = dev, `tags/<ver>/` = frozen копия на каждый релиз,
 `assets/` = listing-файлы. Fallback-слаг: `agentbadge-verify`.
+**Пошаговый submit-рунбук** → `docs/WPORG-SUBMIT.md` (аккаунт →
+submit → review → SVN trunk/tags/assets → релиз-цикл).
 
 ### PCF env (воспроизводимо, ~2 мин)
 
