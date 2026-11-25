@@ -1,5 +1,5 @@
 === AgentBadge — Agent Readiness ===
-Contributors: agentbadge
+Contributors: paul2029
 Tags: security, ai, verification, agents, scanner
 Requires at least: 6.4
 Tested up to: 7.1
