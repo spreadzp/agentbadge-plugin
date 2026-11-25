@@ -181,7 +181,7 @@ class Agentbadge_Reporter {
 			return $res;
 		}
 
-		$scan_id      = 'self_' . gmdate( 'Ymd\THis' );
+		$scan_id = 'self_' . gmdate( 'Ymd\THis' );
 		// Backend validates collected_at as strict ISO-8601 ("Z" suffix
 		// only, zod .datetime()); gmdate('c') emits "+00:00" → rejected.
 		$collected_at = gmdate( 'Y-m-d\TH:i:s\Z' );

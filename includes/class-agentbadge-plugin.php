@@ -78,7 +78,7 @@ class Agentbadge_Plugin {
 		add_action( 'agentbadge_job_pull', array( $this, 'cron_job_pull' ) );
 		add_action( 'agentbadge_job_pull_once', array( $this, 'cron_job_pull_once' ) );
 		add_action( 'admin_init', array( $this, 'visit_trigger' ) );
-		add_filter( 'cron_schedules', array( $this, 'cron_schedules' ) ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- core filter
+		add_filter( 'cron_schedules', array( $this, 'cron_schedules' ) ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound, WordPress.WP.CronInterval.CronSchedulesInterval -- core filter; 10-min cadence is the documented D-262-Q27 poll interval
 		if ( ! wp_next_scheduled( 'agentbadge_self_report' ) ) {
 			wp_schedule_event( time() + 300, 'daily', 'agentbadge_self_report' );
 		}
@@ -95,6 +95,7 @@ class Agentbadge_Plugin {
 	 */
 	public function cron_schedules( array $schedules ): array {
 		$schedules['agentbadge_ten_minutes'] = array(
+			// phpcs:ignore WordPress.WP.CronInterval.CronSchedulesInterval -- D-262-Q27 poll cadence; 10 min is the documented job-pull interval
 			'interval' => 600,
 			'display'  => 'Every Ten Minutes (AgentBadge)',
 		);

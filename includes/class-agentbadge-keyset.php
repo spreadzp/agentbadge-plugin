@@ -80,7 +80,9 @@ class Agentbadge_Keyset {
 		if ( ! function_exists( 'sodium_crypto_sign_verify_detached' ) ) {
 			return false;
 		}
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode -- Ed25519 signature decode, not obfuscation
 		$sig = base64_decode( $sig_b64, true );
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode -- Ed25519 public key decode, not obfuscation
 		$pub = base64_decode( $pub_b64, true );
 		if ( false === $sig || false === $pub || 32 !== strlen( $pub ) ) {
 			return false;

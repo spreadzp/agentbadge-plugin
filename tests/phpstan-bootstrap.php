@@ -13,3 +13,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 	define( 'WP_UNINSTALL_PLUGIN', 'agentbadge/agentbadge.php' );
 }
+
+// Pure-function shim for tests (Brain Monkey doesn't stub it
+// automatically; production WP provides the real one).
+if ( ! function_exists( 'wp_unslash' ) ) {
+	/**
+	 * @param string|array $value Value to unslash.
+	 * @return string|array
+	 */
+	function wp_unslash( $value ) {
+		return is_array( $value )
+			? array_map( 'wp_unslash', $value )
+			: stripslashes( (string) $value );
+	}
+}

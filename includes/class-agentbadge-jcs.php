@@ -45,6 +45,7 @@ class Agentbadge_Jcs {
 			// PHP's default precision (-1) emits the shortest
 			// round-trip representation — matches ECMAScript for the
 			// finite values the protocol carries (byte sizes, secs).
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode -- JCS canonical bytes; wp_json_encode's sanity pass could alter them
 			$enc = json_encode( $value );
 			return false === $enc ? '0' : $enc;
 		}
