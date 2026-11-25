@@ -1,8 +1,11 @@
 # Release & rollback runbook (SLICE-262-33)
 
 D-262-Q12: плагин — отдельный публичный repo, свой релиз-цикл,
-SVN-mirror для wp.org. Схемы/fixtures — один авторитетный источник
-(server `spec/`); PHP потребляет копию `contracts/` без Node.
+SVN-mirror для wp.org. Remote:
+`github.com/spreadzp/agentbadge-plugin` (public, `main` —
+origin → `git@github-spreadzp:`). Схемы/fixtures — один
+авторитетный источник (server `spec/`); PHP потребляет копию
+`contracts/` без Node.
 
 ## Pre-release checklist
 
