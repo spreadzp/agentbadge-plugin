@@ -34,19 +34,38 @@ bash bin/build-zip.sh dist/agentbadge.zip   # пересобрать
 
 Прогнать validator ещё раз — warning про Contributors уйдёт.
 
-## Шаг 3 — Submit (~15 мин)
+## Шаг 3 — Submit ✅ DONE 2026-11-25
 
-1. Залогиниться на `wordpress.org` тем же аккаунтом.
-2. `https://wordpress.org/plugins/developers/add/` → upload
-   `dist/agentbadge.zip` (та же сборка, что прошла PCF!).
-3. Форма: Plugin Name = `AgentBadge — Agent Readiness`
-   (как в `=== ... ===` readme), slug предложат `agentbadge` —
-   если занят, fallback `agentbadge-verify` (задокументировано
-   в слайсе).
-4. Подтвердить compliance-чекбоксы: GPLv2+ совместимость,
-   следование guidelines, код — твой собственный.
+Выполнено через Playwright (аккаунт `paul2029` / Pavel Spread):
 
-## Шаг 4 — Review (3–14 дней)
+- readme.txt: добавлена секция `== External Services ==`
+  (guideline 6 — декларация agentbadge.xyz API, data flows,
+  consent gating, terms/privacy) — **перед** сабмитом, commit
+  `2ac736b`, validator 0 errors / 0 warnings.
+- Upload `dist/agentbadge.zip` (sha256 `83b45475…`, 49 файлов)
+  через multipart-POST на `/plugins/developers/add/` —
+  file input не кликался из-под автоматизации, обошлось
+  `fetch(File)` + `FormData`.
+- 8/8 requirement-чекбоксов + comment для ревьюеров
+  (serviceware-декларация, PCF 0/0, fresh-install e2e 7.1.5,
+  uninstall чист, repo public).
+- **Slug**: auto-assigned `agentbadge-agent-readiness` →
+  сменил на **`agentbadge`** через REST
+  `PATCH /plugins/wp-json/plugins/v1/upload/<id>/slug`
+  (поле `post_name` + `_wporg_action` nonce; смена доступна
+  только ДО старта review).
+- Подтверждение: «Thank you for uploading AgentBadge — Agent
+  Readiness», queue ~260 plugins, review email уйдёт на
+  spread2009@gmail.com от plugins@wordpress.org.
+
+Профиль аккаунта: Name `Pavel Spread`, bio про AgentBadge,
+website agentbadge.xyz, location USA, interests AI/Blockchain.
+Подводный камень profiles.wordpress.org: buddypress-форма
+падает с «problem updating» если required checkbox-поле
+(field_8 Personal/Business) снято — сейв идёт частями по
+field_ids либо с отмеченными чекбоксами.
+
+## Шаг 4 — Review (1–10 дней, ~260 в очереди)
 
 - Статус приходит на email аккаунта + виден на
   `wordpress.org/plugins/developers/` (очередь pending).
