@@ -28,7 +28,9 @@ final class PluginTest extends TestCase {
 
 		require dirname( __DIR__, 2 ) . '/agentbadge.php';
 
-		$this->assertSame( '0.1.0', AGENTBADGE_VERSION );
+		$header = file_get_contents( dirname( __DIR__, 2 ) . '/agentbadge.php' );
+		preg_match( '/Version:\s*(\S+)/', (string) $header, $m );
+		$this->assertSame( $m[1], AGENTBADGE_VERSION );
 		$this->assertSame( '1.0', AGENTBADGE_PROTOCOL_VERSION );
 	}
 

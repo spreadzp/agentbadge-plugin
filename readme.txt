@@ -4,7 +4,7 @@ Tags: security, ai, verification, agents, scanner
 Requires at least: 6.4
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 0.1.0
+Stable tag: 0.1.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -14,8 +14,10 @@ Signed, third-party verifiable evidence about how ready your site is for AI agen
 
 AgentBadge measures two surfaces of your site from an AI agent's point of view:
 
-* **Readiness** — can agents actually use you? llms.txt, robots.txt AI rules, sitemaps, .well-known agent cards, JSON-LD, REST index, sitemap freshness, and more (~40 checks).
-* **Exposure** — what do agents accidentally see? readme/debug files, xmlrpc.php, user enumeration, version leaks, backup artifacts, directory listing, SQL error leaks (~15 checks).
+* **Readiness** — can agents actually use you? llms.txt, robots.txt AI rules, sitemap, JSON-LD, public access, permalinks, HTTPS, REST index (8 checks).
+* **Exposure** — what do agents accidentally see? WP_DEBUG leaks, debug display, file editing, generator tag, readme.html leak, xmlrpc.php, user enumeration, open registration (8 checks).
+
+The local scanner runs 16 checks. When connected, the cloud runs the extended ruleset externally — including checks only an outside observer can make (TLS, redirects, CDN-facing headers, well-known files as the internet sees them).
 
 The local scanner runs entirely inside WordPress — nothing leaves your site until you opt in.
 
@@ -26,13 +28,13 @@ Connect the plugin to AgentBadge Cloud with a site key and the picture becomes i
 * **Self-report channel** — your scan results are shipped as signed, timestamped evidence envelopes.
 * **External scan** — the cloud re-checks your public surface from the outside (no trust in self-report alone).
 * **Signed report + attestation** — findings from both channels are assembled into a signed report; an attestation binds your scores to a validity window.
-* **Public verification** — with your explicit consent, a public verify endpoint lets anyone check the attestation and its signature. Off by default.
-* **Pull jobs** — operators can ask your site for whitelisted, read-only diagnostics (e.g. "is DISALLOW_FILE_EDIT defined?"). Every job is signed, expires quickly, executes nothing outside a fixed capability list, and can be switched off by revoking the `inside_diagnostics` consent at any time.
+* **Public verification** — with your explicit consent (granted in your AgentBadge dashboard), a public verify endpoint lets anyone check the attestation and its signature. Off by default.
+* **Pull jobs** — operators can ask your site for whitelisted, read-only diagnostics (e.g. "is DISALLOW_FILE_EDIT defined?"). Every job is signed, expires quickly, executes nothing outside a fixed capability list, and can be switched off by revoking the `inside_diagnostics` consent in your AgentBadge dashboard at any time.
 * **Status snapshot** — the plugin periodically pulls its own latest attestation and report findings and caches them in a WP option, so themes and portal integrations can render your status without a live API call.
 
 = Consent model =
 
-Every data flow is behind an explicit, per-purpose consent toggle you can revoke at any time. Revocation stops the flow on the next cycle — the plugin mirrors consent locally and the server re-checks it server-side on every call.
+Every data flow is gated by an explicit, per-purpose consent you can revoke at any time **in your AgentBadge dashboard** (the external service). Connecting grants audit consent; pull jobs, public publication, and any apply actions each carry their own consent. Revocation stops the flow on the next cycle — the plugin mirrors the consent state locally and the server re-checks it server-side on every call. Locally, Disconnect ends all flows and forgets the key.
 
 = Security =
 
@@ -53,7 +55,7 @@ Every data flow is behind an explicit, per-purpose consent toggle you can revoke
 
 = Does anything leave my site without consent? =
 
-No. The local scanner is fully offline. Cloud features require connecting with a site key, and each data flow (self-report, pull jobs, publication) has its own consent toggle.
+No. The local scanner is fully offline. Cloud features require connecting with a site key, and each data flow (self-report, pull jobs, publication) is gated by its own consent, managed in your AgentBadge dashboard.
 
 = What exactly is collected? =
 
@@ -65,7 +67,7 @@ No. The protocol is whitelisted read-only probes — "read a constant", "summari
 
 = How do I disconnect or revoke? =
 
-Disconnect clears the stored site key and the pinned trust keyset. Individual consents can be revoked independently in the Cloud tab. Uninstalling removes every `agentbadge_*` option, cron hook, and the capability the plugin granted at activation.
+Disconnect clears the stored site key and the pinned trust keyset. Individual consents can be revoked independently in your AgentBadge dashboard. Uninstalling removes every `agentbadge_*` option, cron hook, and the capability the plugin granted at activation.
 
 = Is it multisite-compatible? =
 
@@ -80,17 +82,21 @@ The plugin is free. The optional cloud service runs in private beta — tiers ar
 This plugin can optionally connect to the AgentBadge Cloud API at `agentbadge.xyz` (service operated by the plugin author). The local scanner works fully offline — the connection is only used after you paste a site key in the Cloud tab.
 
 * **What the service is:** a verification backend that receives your site's scan evidence, runs an independent external scan of your public surface, and returns a signed report and attestation.
-* **What data is sent and when:** signed evidence envelopes containing scan check results (public-surface facts like robots.txt, headers, well-known files, sitemaps, plus plugin-side diagnostics such as whether WP_DEBUG is defined). Sent on the configured report cycle and only while the matching consent toggle is on. Content, user data, and secrets are never sent.
+* **What data is sent and when:** signed evidence envelopes containing scan check results (public-surface facts like robots.txt, headers, well-known files, sitemaps, plus plugin-side diagnostics such as whether WP_DEBUG is defined). Sent on the configured report cycle and only while the matching consent is granted in your AgentBadge dashboard. Content, user data, and secrets are never sent.
+* **Consent management:** per-purpose consents (audit, inside_diagnostics, publication, apply) are granted and revoked in your AgentBadge dashboard on agentbadge.xyz; the plugin mirrors the state and stops flows locally.
 * **Account:** no account registration is required — a site key (issued via agentbadge.xyz or the onboarding flow) identifies the site.
 * **Terms and policies:** terms of service — https://agentbadge.xyz/terms ; privacy policy — https://agentbadge.xyz/privacy
 
 == Screenshots ==
 
 1. Local scan results — readiness and exposure findings with evidence counts.
-2. Cloud connect — paste the site key, review the consent toggles.
+2. Cloud connect — paste the site key, review exactly what will be sent.
 3. Connected state — last report, snapshot freshness, pull-job activity.
 
 == Changelog ==
+
+= 0.1.1 =
+* Readme corrected to match shipped functionality: per-purpose consent management lives in the AgentBadge dashboard (external service), local scanner runs 16 checks.
 
 = 0.1.0 =
 * Initial release: local readiness/exposure scanner, cloud evidence channel, signed pull jobs, attestation verification, local status snapshot.

@@ -2,7 +2,7 @@
 /**
  * Plugin Name: AgentBadge — Agent Readiness
  * Description: Measures how ready your site is for AI agents — discoverability checks (llms.txt, robots, sitemaps, .well-known) plus agent-surface exposure checks. Free local scanner; optional AgentBadge Cloud for independent external verification.
- * Version:     0.1.0
+ * Version:     0.1.1
  * Author:      AgentBadge
  * License:     GPL-2.0-or-later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! defined( 'AGENTBADGE_VERSION' ) ) {
-	define( 'AGENTBADGE_VERSION', '0.1.0' );
+	define( 'AGENTBADGE_VERSION', '0.1.1' );
 }
 if ( ! defined( 'AGENTBADGE_PATH' ) ) {
 	define( 'AGENTBADGE_PATH', plugin_dir_path( __FILE__ ) );
